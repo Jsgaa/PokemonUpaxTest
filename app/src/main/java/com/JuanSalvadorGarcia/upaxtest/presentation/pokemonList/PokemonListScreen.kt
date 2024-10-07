@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,9 +33,9 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
-import coil.request.ErrorResult
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.JuanSalvadorGarcia.upaxtest.R
 import com.JuanSalvadorGarcia.upaxtest.domain.model.PokemonModel
 
@@ -90,7 +92,7 @@ fun PokemonListScreen(
 @Composable
 fun PokemonList(pokemons: LazyPagingItems<PokemonModel>, navigateToPokemonDetails: NavHostController) {
 
-    LazyColumn(Modifier.fillMaxSize()) {
+    LazyColumn(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         items(pokemons.itemCount) {
             pokemons[it]?.let { pokemonModel ->
                 ItemList(pokemonModel = pokemonModel, navigateToPokemonDetails)
@@ -107,53 +109,42 @@ fun ItemList(pokemonModel: PokemonModel, navigateToPokemonDetails: NavHostContro
         modifier = Modifier
             .padding(24.dp)
             .clip(CircleShape)
-            .width(250.dp)
-            .height(250.dp)
+            .width(200.dp)
+            .height(200.dp)
             .background(Color.White)
             .clickable { navigateToPokemonDetails.navigate("details?url=${pokemonModel.url}") },
         contentAlignment = Alignment.Center
     ) {
+         val imageRequest = ImageRequest.Builder(LocalContext.current)
+             .data(pokemonModel.url)
+             .build()
 
-        var stateRequest = false
-        val listener = object : ImageRequest.Listener{
-            override fun onError(request: ImageRequest, result: ErrorResult) {
-                super.onError(request, result)
-                stateRequest = true
+        val painter = rememberAsyncImagePainter(model = imageRequest)
 
+        when (painter.state) {
+            is AsyncImagePainter.State.Success -> {
+                AsyncImage(
+                    model = imageRequest,
+                    contentDescription = "character image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.placeholder),
+                    error = painterResource(id = R.drawable.placeholder)
+                )
             }
-
-            override fun onSuccess(request: ImageRequest, result: SuccessResult) {
-                super.onSuccess(request, result)
-                stateRequest = true
+            else -> {
+                Box(modifier = Modifier
+                    .clip(CircleShape)
+                    .fillMaxSize()
+                    .border(2.dp, Color.Green, shape = CircleShape)
+                    .background(Color.White),
+                    contentAlignment = Alignment.Center) {
+                    Text(text = pokemonModel.name[0].uppercase(), textAlign = TextAlign.Center, fontSize = 100.sp, color = Color.Black)
+                }
             }
-        }
-
-        val imageRequest = ImageRequest.Builder(LocalContext.current)
-            .data(pokemonModel.url)
-            .listener(listener)
-            .build()
-
-
-        if (pokemonModel.url.isEmpty() || !stateRequest) {
-            Box(modifier = Modifier
-                .clip(CircleShape)
-                .fillMaxSize()
-                .border(2.dp, Color.Green, shape = CircleShape)
-                .background(Color.White),
-                contentAlignment = Alignment.Center) {
-                Text(text = pokemonModel.name[0].uppercase(), textAlign = TextAlign.Center, fontSize = 100.sp)
-            }
-        } else {
-            AsyncImage(
-                model = imageRequest,
-                contentDescription = "character image",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.placeholder),
-                error = painterResource(id = R.drawable.placeholder)
-            )
         }
     }
+    Text(text = pokemonModel.name.replaceFirstChar { char -> char.titlecase() }, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
 
 }
 

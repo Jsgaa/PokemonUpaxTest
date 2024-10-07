@@ -23,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.JuanSalvadorGarcia.upaxtest.R
 import com.JuanSalvadorGarcia.upaxtest.domain.model.PokemonDetailsModel
@@ -87,7 +86,8 @@ fun PokemonData(pokemon: PokemonDetailsModel, pokemonDetailsViewModel: PokemonDe
             }
             AsyncImage(
                 model = pokemon.sprites,
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier
+                    .size(200.dp),
                 contentDescription = "",
                 placeholder = painterResource(id = R.drawable.placeholder),
                 error = painterResource(id = R.drawable.placeholder)
@@ -96,7 +96,7 @@ fun PokemonData(pokemon: PokemonDetailsModel, pokemonDetailsViewModel: PokemonDe
         }
 
         Column {
-            Text(text = "Name: ${pokemon.name}",
+            Text(text = "Name: ${pokemon.name.replaceFirstChar { char -> char.titlecase() }}",
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
@@ -128,11 +128,5 @@ fun PokemonData(pokemon: PokemonDetailsModel, pokemonDetailsViewModel: PokemonDe
         }
 
     }
-
-
-}
-
-@Composable
-fun PokemonFavorite() {
 
 }
